@@ -1,0 +1,47 @@
+stages:
+  - build
+  - style-check
+  - test 
+  - deploy
+
+build:
+  stage: build
+  script:
+    - cd src/C3_SimpleBashUtils-0/src/cat/
+    - make
+    - cd ../grep/
+    - make
+  after_script:
+    - bash src/scripts/bot.sh "build" 
+  artifacts:
+    paths:
+    - src/C3_SimpleBashUtils-0/src/cat/s21_cat
+    - src/C3_SimpleBashUtils-0/src/grep/s21_grep
+    expire_in: 30 days
+
+style-check:
+  stage: style-check
+  script:
+    - clang-format --style=Google -n -Werror src/C3_SimpleBashUtils-0/src/cat/*.h src/C3_SimpleBashUtils-0/src/cat/*.c src/C3_SimpleBashUtils-0/src/grep/*.h src/C3_SimpleBashUtils-0/src/grep/*.c 
+  after_script:
+    - bash src/scripts/bot.sh "style" 
+
+test:
+  stage: test
+  script:
+    - cd src/C3_SimpleBashUtils-0/src/cat
+    - bash cat_test.sh
+    - cd ../grep/ 
+    - bash grep_test.sh
+  after_script:
+    - bash src/scripts/bot.sh "test" 
+
+deploy:
+  stage: deploy
+  script:
+    - cd src/scripts/
+    - chmod +x deploy.sh 
+    - bash deploy.sh
+  when: manual
+  after_script:
+    - bash src/scripts/bot.sh "deploy" 
